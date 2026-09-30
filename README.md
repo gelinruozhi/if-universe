@@ -1,92 +1,103 @@
-# 如果宇宙 · Yuzhou
+# 如果宇宙 · IF UNIVERSE
 
-「平行人生探索」应用：输入一个人生假设（如"如果我学会了画画"），AI 生成该平行宇宙的完整故事、关键碎片与一封来自未来的信。支持用户系统、探索广场、评论点赞、排行榜、宇宙碰撞、命运转盘、每日挑战、宇宙年鉴等。
+> 以「如果」开头，写下你好奇的另一种人生。AI 为你书写那条没有走的路——五幕人生弧线、四枚记忆碎片，和一封来自未来的信。
 
-## 项目背景
+**平行人生探索应用**：输入一个人生假设（如"如果我学会了画画"），AI 实时生成该平行宇宙的完整叙事，并可分享到探索广场、碰撞两个宇宙、对比两条时间线、生成你的宇宙年鉴。
 
-《如果宇宙》是 **TRAE AI 创造力大赛**（2026.6.16 – 8.22，生活娱乐赛道）的参赛作品，曾以《如果宇宙——用AI探索你的平行人生》为题提交至 [TRAE 官方中文社区](https://forum.trae.cn/t/topic/35492)（该帖现仅作者可见）。全程使用 **TRAE Work / TRAE IDE** 创作。
+曾以《如果宇宙——用AI探索你的平行人生》为题参加 **TRAE AI 创造力大赛**（2026，生活娱乐赛道），从纯前端单文件 Demo 进化为全栈应用。设计语言：深空底色上的编辑部式排版——宋体大字提问、编号索引、等宽元信息、细线分割。
 
-- **竞赛官网**：https://www.trae.cn/ai-creativity
-- **赛事细则**：https://bytedance.larkoffice.com/wiki/DScwwZPzsikvNzk5slJc2kgpnie
-- **报名指南**：https://forum.trae.cn/t/topic/22548
+## 功能特性
 
-**演进脉络**：
+- **平行人生生成**：SSE 流式输出，首字约 1 秒，五幕场景因果衔接、首尾呼应
+- **宇宙碰撞**：两条时间线交汇融合的叙事生成
+- **AI 续写**：在已有故事上继续书写
+- **探索广场**：分享、评论、点赞其他人的平行宇宙
+- **成长系统**：成就徽章、命运转盘、每日挑战、今日运势、宇宙年鉴
+- **用户体系**：注册登录、云端同步、平行对比、个人中心
+- **PWA**：可安装到主屏幕，离线回退
 
-1. **纯前端 Demo（2026.6.18–19，TRAE Work）**：零依赖单文件 HTML，经 6 轮迭代（`index.html` → `index-final` → `index-competition` → `index-expanded`），内置 8 个预设人生主题与关键词匹配、命运转盘、成就系统等，数据存 localStorage。历史版本与设计决策记录见 [docs/trae-work-context.md](docs/trae-work-context.md)。
-2. **全栈版本（2026.7，本仓库）**：接入 Express 后端 + 火山引擎 ARK 流式生成，AI 内容从预设模板升级为实时生成；新增用户账号体系、探索广场（分享/评论/点赞）、排行榜、云同步等，localStorage 键与后端 JSON 存储双向同步。
+## 技术架构
 
-**设计语言**（自初版延续至今）：深色宇宙主题（基底色 `#030014`）、玻璃拟态、Canvas 星空粒子/星云/流星、紫→蓝渐变品牌标题（品牌名 + ✦ 分隔线 + 副文案"如果你做了另一个选择"）、Polaroid 碎片卡片、信笺红印章，页脚保留 "Made with TRAE"。
+| 层 | 实现 |
+|---|---|
+| 后端 | Node.js (≥22.9) + Express，单文件 `server.js`（ESM） |
+| 前端 | 零构建单页应用 `frontend/index.html`（PWA：`sw.js` + `manifest.json`） |
+| AI | 阿里云百炼 DashScope `deepseek-v4.1-flash`（OpenAI 兼容 SSE）；兼容火山引擎 ARK |
+| 存储 | `data/` 下 JSON 文件：原子写入（tmp + rename）、按文件读写锁，无需数据库 |
 
-## 运行方式
-
-- 后端：Node.js (≥22.9) + Express，单文件 `server.js`（ESM）
-- 前端：零构建单页应用 `frontend/index.html`（PWA：`sw.js` + `manifest.json`）
-- AI：火山引擎 ARK（OpenAI 兼容 `/chat/completions`，SSE 流式）；也兼容阿里云 DashScope
-- 存储：`data/` 下的 JSON 文件（原子写入 + 按文件串行化，无需数据库）
-
-## 本地运行（Windows / macOS / Linux）
+## 快速开始
 
 ```bash
 npm install
-cp .env.example .env      # 填入 ARK_API_KEY / ARK_MODEL；PORT 默认 3000，可按需修改
-npm start                 # 访问 http://localhost:<PORT>（Windows 也可双击 start.bat）
+cp .env.example .env      # 填入 DASHSCOPE_API_KEY 等
+npm start                 # Windows 可双击 start.bat
 ```
 
-> 本机若 3000 端口被其他应用占用（如同目录的 CityCanvas 项目），把 `.env` 里的 `PORT` 改成 3001 等空闲端口即可；服务端内置兜底默认值也是 3000。端口被占用时启动会给出明确提示。
+访问 `http://localhost:<PORT>`（默认 3000，见 `.env`）。
 
-`.env` 由 Node 原生 `--env-file-if-exists=.env` 加载（无需 dotenv，见 `package.json` scripts）。未创建 `.env` 也能启动，但 AI 生成会提示未配置。
+> `.env` 由 Node 22 原生 `--env-file-if-exists=.env` 加载，无需 dotenv。未配置密钥也能启动，AI 生成会提示未配置。
 
 ## 环境变量
 
 | 变量 | 说明 |
 |---|---|
 | `PORT` / `HOST` | 默认 `3000` / `0.0.0.0` |
-| `ARK_API_KEY` | 火山引擎 Key（`ark-` 开头，最高优先级） |
-| `ARK_API_URL` | 默认 `https://ark.cn-beijing.volces.com/api/v3` |
-| `ARK_MODEL` | 火山接入点 ID（`ep-` 开头）或 doubao 系列 |
-| `DASHSCOPE_API_KEY` / `DASHSCOPE_MODEL` | 阿里云百炼（`sk-` 开头）备选 |
-| `YUZHOU_ADMIN` / `YUZHOU_ADMIN_PASS` | 管理员账号，默认 `admin` / `admin123`（生产务必修改） |
-| `YUZHOU_STRICT_AUTH` | 设为 `1` 关闭旧的 `x-username` 头兼容，仅允许 token |
+| `DASHSCOPE_API_KEY` | 阿里云百炼 Key（千问AI平台） |
+| `DASHSCOPE_API_URL` | 默认 `https://dashscope.aliyuncs.com/compatible-mode/v1` |
+| `DASHSCOPE_MODEL` | 默认 `deepseek-v4.1-flash` |
+| `ARK_API_KEY` / `ARK_API_URL` / `ARK_MODEL` | 火山引擎 ARK 备选（`ark-` 前缀 Key 优先级最高） |
+| `YUZHOU_ADMIN` / `YUZHOU_ADMIN_PASS` | 管理员账号，默认 `admin` / `admin123`（公网部署务必修改） |
+| `YUZHOU_STRICT_AUTH` | 设为 `1` 关闭旧 `x-username` 头兼容，仅允许 token |
 
-Key 自动识别规则：`ark-` 前缀 → 火山引擎；`sk-` → 阿里云/OpenAI 兼容。
+> **注意**：`deepseek-v4.1-flash` 默认开启思考模式，服务端已按 provider 传 `enable_thinking: false`，否则首字延迟可达 45 秒且输出被截断。
 
 ## 服务器部署（Linux + PM2）
 
 ```bash
-# 服务器上（目录 /var/www/yuzhou）
 cp .env.example .env && vim .env    # 填入密钥与端口
 npm install --omit=dev
 bash deploy.sh                      # 重建 PM2 进程并保存
 ```
 
-Nginx 反向代理建议（SSE 必须关闭缓冲）：
+Nginx 反向代理（SSE 必须关闭缓冲）：
 
 ```nginx
 location / {
-    proxy_pass http://127.0.0.1:3000;
+    proxy_pass http://127.0.0.1:3001;
     proxy_http_version 1.1;
     proxy_set_header Connection '';
-    proxy_buffering off;          # 关键：否则流式输出被缓冲
+    proxy_buffering off;              # 关键：否则流式输出被缓冲
     proxy_read_timeout 120s;
 }
 ```
 
-## 常用运维命令
+## 安全说明
 
-```bash
-curl http://127.0.0.1:3000/api/health          # 健康检查（版本/provider/model）
-curl http://127.0.0.1:3000/api/debug/config    # 配置自检（管理员token可见详情）
-pm2 logs yuzhou --lines 50                     # 日志
+- **密钥只存放在 `.env`**（已 gitignore），代码与脚本中无任何凭据；`.env.example` 仅为占位模板
+- **`data/` 目录不入库**：含用户密码哈希（scrypt + 随机盐）与个人内容，部署时自动生成
+- 密码哈希 scrypt；JSON 原子写 + 按文件串行化；用户名白名单 + 数据目录边界守卫；存储型 XSS 转义
+- AI 请求并发上限 3 + 排队 10；限流按业务分桶（AI 10 次/分、登录注册 15 次/分）
+
+## 目录结构
+
+```
+├── server.js                 # 后端（路由、SSE、AI 接入、限流、存储）
+├── frontend/
+│   ├── index.html            # 前端单页应用（含样式与交互）
+│   ├── sw.js                 # Service Worker（HTML 网络优先）
+│   └── manifest.json         # PWA 清单
+├── data/                     # 运行时 JSON 存储（不入库，自动生成）
+├── docs/
+│   └── trae-work-context.md  # TRAE Work 时期的创作上下文存档
+├── deploy.sh                 # Linux PM2 一键部署
+├── start.bat                 # Windows 一键启动
+└── .env.example              # 环境变量模板
 ```
 
-## 架构要点
+## 运维排查
 
-- **SSE 流式生成**：`server.js` 的 `createSSEStream` 统一处理心跳（15s）、首 token 超时提示（30s）、总超时（90s）、客户端断连清理、批量输出（首屏 2 字符即吐）
-- **并发保护**：AI 请求最多并发 3、排队 10；限流按业务分桶（AI 10次/分、登录注册 15次/分）
-- **数据安全**：JSON 原子写（tmp + rename）、按文件读写锁、密码 scrypt + 随机盐（旧哈希登录自动升级）、存储型 XSS 转义、用户名白名单
-- **登录自愈**：登录时自动补建缺失的用户数据文件（不覆盖已有数据）
-- **传输优化**：gzip 压缩（SSE 除外），首页 516KB → 133KB；`sw.js` 禁缓存保证 PWA 更新即时生效
-
-## 数据备份
-
-全部状态在 `data/` 目录，直接整目录备份即可。删除某用户请走管理后台（会连带清理其帖子和评论）。
+```bash
+curl http://127.0.0.1:3001/api/health          # 健康检查（版本/provider/model）
+curl http://127.0.0.1:3001/api/debug/config    # 配置自检（管理员 token 可见详情）
+pm2 logs yuzhou --lines 50                     # 线上日志
+```
