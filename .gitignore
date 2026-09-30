@@ -4,8 +4,12 @@
 # 依赖
 node_modules/
 
-# 运行日志
+# 运行日志与历史调试残留
 *.log
+check.txt
+npm-install.txt
+port-check.txt
+server-log.txt
 
 # 运行时用户数据（含密码哈希与个人内容，不入库；应用会自动生成）
 data/

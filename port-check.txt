@@ -1,5 +1,0 @@
-1876:const PORT = process.env.PORT || 80;
-1878:server = app.listen(PORT, HOST, () => {
-1881:  console.log(` Running on http://${HOST}:${PORT}`);
-1898:    console.warn('   调试端点: http://localhost:' + PORT + '/api/debug/config');
-1907:    console.log('💡 调试端点: http://localhost:' + PORT + '/api/debug/config');
