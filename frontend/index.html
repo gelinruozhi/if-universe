@@ -1154,30 +1154,46 @@
             content: ''; position: absolute; inset: -6% -14%; pointer-events: none; z-index: -1;
             background: radial-gradient(ellipse 58% 52% at 36% 44%, rgba(124,108,255,0.13), transparent 66%);
         }
-        #page-home .q-cap { font-family: var(--hu-mono); font-size: 10px; letter-spacing: 0.42em; color: var(--hu-dim); margin-bottom: 20px; }
-        #page-home .q-line { font-family: var(--hu-serif); color: var(--text-primary); line-height: 1; }
-        #page-home .q-open, #page-home .q-close { font-size: clamp(2.4rem, 6.5vw, 3.8rem); color: rgba(255,255,255,0.32); }
-        #page-home .q-open { margin-left: -0.45em; }
-        #page-home .q-close em {
-            font-style: normal; font-size: clamp(1.4rem, 3.6vw, 2.1rem); letter-spacing: 0.26em; margin-left: 14px;
+        #page-home .q-cap { font-family: var(--hu-mono); font-size: 10px; letter-spacing: 0.42em; color: var(--hu-dim); margin-bottom: 16px; }
+        /* 输入场：一眼可辨的实体面板，聚焦时辉光环 */
+        #page-home .q-box {
+            display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px;
+            position: relative; padding: 20px 112px 18px 22px;
+            background: rgba(255,255,255,0.045);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 12px;
+            box-shadow: 0 14px 50px rgba(3,0,20,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+        }
+        #page-home .q-box:hover { border-color: rgba(255,255,255,0.32); background: rgba(255,255,255,0.055); }
+        #page-home .q-box:focus-within {
+            background: rgba(255,255,255,0.065);
+            border-color: rgba(139,124,255,0.9);
+            box-shadow: 0 0 0 1px rgba(139,124,255,0.45), 0 0 48px rgba(124,108,255,0.26), 0 14px 50px rgba(3,0,20,0.5);
+        }
+        #page-home .q-bracket, #page-home .q-tail {
+            font-family: var(--hu-serif); font-size: clamp(1.4rem, 3.2vw, 1.9rem);
+            color: rgba(255,255,255,0.45); line-height: 1.2; flex-shrink: 0;
+        }
+        #page-home .q-tail em {
+            font-style: normal; font-size: clamp(1.05rem, 2.4vw, 1.3rem); letter-spacing: 0.22em; margin-left: 8px;
             background: linear-gradient(100deg, #b7a8ff, #8b7cff 55%, #5ad0ff);
             -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
         }
-        #page-home .q-blank { display: block; position: relative; margin: 2px 0; }
-        #page-home .q-blank .input-field {
-            width: 100%; font-family: var(--hu-serif);
-            font-size: clamp(1.4rem, 4.2vw, 2.05rem); letter-spacing: 0.05em;
-            padding: 8px 4px 13px; height: auto; background: transparent;
-            border: none; border-bottom: 2px solid rgba(255,255,255,0.16); border-radius: 0;
+        #page-home .q-box .input-field {
+            flex: 1 1 220px; min-width: 0; width: auto;
+            font-family: var(--hu-serif); font-size: clamp(1.35rem, 3vw, 1.75rem); letter-spacing: 0.04em;
+            padding: 2px 2px; height: auto; background: transparent;
+            border: none; border-radius: 0;
             color: var(--text-primary); caret-color: var(--hu-accent);
-            transition: border-color 0.35s ease;
         }
-        #page-home .q-blank .input-field::placeholder { color: rgba(255,255,255,0.2); }
-        #page-home .q-blank .input-field:focus { outline: none; border-bottom-color: var(--hu-accent); }
-        #page-home .q-blank .voice-btn { position: absolute; right: 62px; top: 14px; font-size: 0.95rem; color: var(--hu-dim); background: none; border: none; padding: 4px; }
-        #page-home .q-blank .voice-btn:hover { color: var(--text-primary); }
-        #page-home .q-blank .char-counter { right: 6px; top: 16px; font-family: var(--hu-mono); font-size: 10px; color: var(--hu-dim); }
-        #page-home .q-blank .input-progress { bottom: -2px; height: 2px; border-radius: 0; background: linear-gradient(90deg, #8b7cff, #5ad0ff); }
+        #page-home .q-box .input-field::placeholder { color: rgba(255,255,255,0.3); transition: color 0.3s ease; }
+        #page-home .q-box:focus-within .input-field::placeholder { color: rgba(255,255,255,0.16); }
+        #page-home .q-box .input-field:focus { outline: none; }
+        #page-home .q-box .voice-btn { position: absolute; right: 58px; top: 50%; transform: translateY(-50%); font-size: 0.95rem; color: var(--hu-dim); background: none; border: none; padding: 4px; }
+        #page-home .q-box .voice-btn:hover { color: var(--text-primary); }
+        #page-home .q-box .char-counter { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-family: var(--hu-mono); font-size: 10px; color: var(--hu-dim); }
+        #page-home .q-box .input-progress { position: absolute; left: 0; bottom: 0; height: 2px; border-radius: 0; background: linear-gradient(90deg, #8b7cff, #5ad0ff); }
 
         /* CTA：细描边，悬停反色 */
         #page-home .entry-btn-row { display: flex; align-items: center; gap: 28px; margin-top: 36px; }
@@ -1316,10 +1332,10 @@
             #page-home .leaderboard-section { grid-area: lb; margin: 0; }
             #page-home .decision-result, #page-home .emotion-radar-container { grid-column: 1 / -1; }
             #page-home .brand-title { font-size: 16px; }
-            #page-home .q-line.q-open { font-size: clamp(3rem, 5vw, 4.6rem); }
-            #page-home .q-line.q-close { font-size: clamp(3rem, 5vw, 4.6rem); }
-            #page-home .q-close em { font-size: clamp(1.7rem, 2.6vw, 2.4rem); }
-            #page-home .q-blank .input-field { font-size: clamp(1.6rem, 2.4vw, 2.2rem); }
+            #page-home .q-box { padding: 24px 118px 22px 26px; }
+            #page-home .q-box .input-field { font-size: clamp(1.5rem, 2.2vw, 1.9rem); }
+            #page-home .q-bracket, #page-home .q-tail { font-size: clamp(1.7rem, 2.6vw, 2.1rem); }
+            #page-home .q-tail em { font-size: clamp(1.2rem, 1.8vw, 1.45rem); }
         }
 
         /* —— 小屏适配（放在最后，确保覆盖同名规则） —— */
@@ -1395,15 +1411,15 @@
     <!-- 主舞台：提问 -->
     <section class="hu-ask entry-animate">
         <div class="q-cap">WRITE YOUR IF · 写下那个如果</div>
-        <div class="q-composition" aria-label="输入你的如果">
-            <div class="q-line q-open" aria-hidden="true">「</div>
-            <div class="q-blank">
+        <div class="q-composition">
+            <div class="q-box">
+                <span class="q-bracket" aria-hidden="true">「</span>
                 <input type="text" class="input-field input-focus-scroll" id="inputField" placeholder="如果我当年没有离开家乡…" maxlength="100" aria-label="写下你的如果" autocomplete="off" role="textbox">
+                <span class="q-tail">」<em>会怎样？</em></span>
                 <button class="voice-btn" id="voiceBtn" title="语音输入" onclick="toggleVoiceInput()">◎</button>
                 <span class="char-counter" id="charCounter">0/100</span>
                 <div class="input-progress" id="inputProgress"></div>
             </div>
-            <div class="q-line q-close">」<em>会怎样？</em></div>
         </div>
         <div class="entry-btn-row">
             <button class="explore-btn" id="exploreBtn" disabled data-needs-network>让这个宇宙诞生<span class="hu-star">✦</span></button>
