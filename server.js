@@ -234,19 +234,52 @@ function normalizeApiUrl(rawUrl) {
   };
 }
 const { baseUrl: API_BASE_URL, chatUrl: API_CHAT_URL } = normalizeApiUrl(RAW_API_URL);
-const SERVER_VERSION = 'v4.5.0-optimize-20260930';
+
+// ===== 运行时 AI 接入配置（管理界面可覆盖，持久化于 data/ai-config.json，优先级高于环境变量）=====
+const AI_CONFIG_FILE = path.join(DATA_DIR, 'ai-config.json');
+const runtimeAI = {
+    apiKey: API_KEY,
+    baseUrl: API_CHAT_URL,      // 完整 chat/completions 地址
+    baseRoot: API_BASE_URL,     // 展示用基础地址
+    model: MODEL_NAME,
+    provider: API_PROVIDER,
+    source: API_KEY_SOURCE || 'env-default'
+};
+function applyAIRuntime(cfg) {
+    if (cfg.apiKey) runtimeAI.apiKey = String(cfg.apiKey).trim();
+    if (cfg.baseUrl) {
+        const n = normalizeApiUrl(String(cfg.baseUrl).trim());
+        runtimeAI.baseUrl = n.chatUrl;
+        runtimeAI.baseRoot = n.baseUrl;
+    }
+    if (cfg.model) runtimeAI.model = String(cfg.model).trim();
+    runtimeAI.provider = (cfg.provider && cfg.provider !== 'auto')
+        ? cfg.provider
+        : detectProvider('admin-ui', runtimeAI.baseRoot, runtimeAI.model, runtimeAI.apiKey);
+    runtimeAI.source = 'admin-ui';
+}
+(function loadAIRuntimeOverride() {
+    try {
+        const cfg = JSON.parse(fs.readFileSync(AI_CONFIG_FILE, 'utf-8'));
+        if (cfg && (cfg.apiKey || cfg.baseUrl || cfg.model)) {
+            applyAIRuntime(cfg);
+            console.log('⚙️  AI 接入已应用管理界面配置: provider=' + runtimeAI.provider + ' model=' + runtimeAI.model);
+        }
+    } catch (e) { if (e.code !== 'ENOENT') console.warn('[ai-config] 读取失败:', e.message); }
+})();
+const SERVER_VERSION = 'v4.6.0-ai-config-20261001';
 
 // 健康检查和API状态端点（必须在express.static之前）
 app.get('/api/health', (req, res) => {
-  const apiConfigured = !!(API_KEY && API_KEY.trim().length > 0);
-  res.json({ 
-    status: 'ok', 
+  const apiConfigured = !!(runtimeAI.apiKey && runtimeAI.apiKey.trim().length > 0);
+  res.json({
+    status: 'ok',
     version: SERVER_VERSION,
     uptime: process.uptime(),
     apiConfigured,
-    provider: API_PROVIDER,
-    model: MODEL_NAME,
-    baseUrl: API_BASE_URL
+    provider: runtimeAI.provider,
+    model: runtimeAI.model,
+    baseUrl: runtimeAI.baseRoot
   });
 });
 
@@ -254,18 +287,18 @@ app.get('/api/health', (req, res) => {
 app.get('/api/debug/config', (req, res) => {
   const adminToken = req.headers['x-admin-token'] || req.query.adminToken;
   const isAdmin = adminToken && adminSessions.get(adminToken) && adminSessions.get(adminToken).expires > Date.now();
-  const apiConfigured = !!(API_KEY && API_KEY.trim().length > 0);
+  const apiConfigured = !!(runtimeAI.apiKey && runtimeAI.apiKey.trim().length > 0);
   if (isAdmin) {
     // 管理员可看详细配置
     res.json({
       version: SERVER_VERSION,
       apiConfigured,
-      apiKeySource: API_KEY_SOURCE,
-      provider: API_PROVIDER,
-      model: MODEL_NAME,
-      baseUrl: API_BASE_URL,
-      keyPreview: apiConfigured ? API_KEY.substring(0, 6) + '...' + API_KEY.substring(API_KEY.length - 4) : null,
-      keyLength: API_KEY ? API_KEY.length : 0,
+      apiKeySource: runtimeAI.source,
+      provider: runtimeAI.provider,
+      model: runtimeAI.model,
+      baseUrl: runtimeAI.baseRoot,
+      keyPreview: apiConfigured ? runtimeAI.apiKey.substring(0, 6) + '...' + runtimeAI.apiKey.substring(runtimeAI.apiKey.length - 4) : null,
+      keyLength: runtimeAI.apiKey ? runtimeAI.apiKey.length : 0,
       nodeEnv: process.env.NODE_ENV || 'development',
       nodeVersion: process.version
     });
@@ -274,8 +307,8 @@ app.get('/api/debug/config', (req, res) => {
     res.json({
       version: SERVER_VERSION,
       apiConfigured,
-      provider: API_PROVIDER,
-      model: MODEL_NAME
+      provider: runtimeAI.provider,
+      model: runtimeAI.model
     });
   }
 });
@@ -579,9 +612,9 @@ function releaseAISlot() {
 }
 
 function buildChatRequestBody(systemPrompt, userPrompt, options = {}) {
-  const { temperature = 0.85, maxTokens = 8000, stream = true } = options;
+  const { temperature = 0.85, maxTokens = 8000, stream = true, ai = runtimeAI } = options;
   const body = {
-    model: MODEL_NAME,
+    model: ai.model,
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt }
@@ -591,18 +624,18 @@ function buildChatRequestBody(systemPrompt, userPrompt, options = {}) {
     stream
   };
   // 阿里云支持response_format json_object，火山引擎不支持
-  if (options.responseFormat === 'json' && API_PROVIDER === 'aliyun') {
+  if (options.responseFormat === 'json' && ai.provider === 'aliyun') {
     body.response_format = { type: 'json_object' };
   }
   // 火山引擎：关闭深度思考模式(thinking)，否则模型会先花1-2分钟"思考"
   // 思考内容不输出给用户，导致首token延迟极长，体验为"长时间空白后突然快速出字"
-  if (API_PROVIDER === 'volcengine') {
+  if (ai.provider === 'volcengine') {
     body.thinking = { type: 'disabled' };
   }
   // DashScope（千问平台）：deepseek-v4.1 等模型默认开启思考模式，
   // 推理内容以 reasoning_content 流出（前端不展示），首token延迟可达45秒，
   // 且思考token会挤占 max_tokens 导致 finish_reason=length 故事截断
-  if (API_PROVIDER === 'aliyun') {
+  if (ai.provider === 'aliyun') {
     body.enable_thinking = false;
   }
   return body;
@@ -713,7 +746,7 @@ async function createSSEStream(req, res, opts) {
   console.log(`[${tag}] Request received`);
 
   // --- API Key 检查 ---
-  if (!API_KEY || API_KEY.trim().length === 0) {
+  if (!runtimeAI.apiKey || runtimeAI.apiKey.trim().length === 0) {
     console.log(`[${tag}] API_KEY not configured`);
     streamEndedNormally = true;
     res.write(`data: ${JSON.stringify({ error: 'API_KEY 未配置，请联系管理员' })}\n\n`);
@@ -734,11 +767,11 @@ async function createSSEStream(req, res, opts) {
       if (c) { try { c.abort(); } catch (_) {} }
     }, API_TIMEOUT);
 
-    console.log(`[${tag}] Calling API...`, API_PROVIDER, MODEL_NAME);
+    console.log(`[${tag}] Calling API...`, runtimeAI.provider, runtimeAI.model);
 
-    const response = await fetch(API_CHAT_URL, {
+    const response = await fetch(runtimeAI.baseUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${runtimeAI.apiKey}` },
       body: JSON.stringify(buildChatRequestBody(systemPrompt, userPrompt, { temperature, maxTokens, stream: true })),
       signal: controller.signal
     });
@@ -750,7 +783,7 @@ async function createSSEStream(req, res, opts) {
       let errText = '';
       try { errText = await response.text(); } catch (_) {}
       console.error(`[${tag}] API error:`, response.status, errText.slice(0, 500));
-      let errMsg = formatApiError(response.status, response.statusText, API_PROVIDER);
+      let errMsg = formatApiError(response.status, response.statusText, runtimeAI.provider);
       const errJson = safeJsonParse(errText);
       if (errJson && (errJson.error?.message || errJson.message)) {
         errMsg = errJson.error?.message || errJson.message;
@@ -1735,6 +1768,118 @@ app.post('/api/admin/logout', requireAdmin, (req, res) => {
 // 验证管理员token
 app.get('/api/admin/verify', requireAdmin, (req, res) => {
   res.json({ ok: true, username: req.admin.username });
+});
+
+// ===== AI 接入配置（管理界面，运行时即时生效）=====
+const AI_PROVIDERS = new Set(['auto', 'aliyun', 'volcengine', 'custom']);
+function maskKey(k) { return k ? k.substring(0, 6) + '…' + k.substring(k.length - 4) : null; }
+function aiConfigSummary() {
+  return {
+    provider: runtimeAI.provider,
+    model: runtimeAI.model,
+    baseUrl: runtimeAI.baseRoot,
+    keyPreview: maskKey(runtimeAI.apiKey),
+    keyLength: runtimeAI.apiKey ? runtimeAI.apiKey.length : 0,
+    source: runtimeAI.source
+  };
+}
+// SSRF 防护：自定义 Base URL 仅允许公网 http(s)，拒绝本机/内网/保留地址
+function assertPublicHttpUrl(raw) {
+  let u;
+  try { u = new URL(String(raw)); } catch { throw new Error('Base URL 格式无效'); }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error('仅支持 http/https 协议');
+  const h = u.hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  const blocked = h === 'localhost' || h === '0.0.0.0' || h === '::1'
+    || h.endsWith('.local') || h.endsWith('.internal')
+    || /^127\./.test(h) || /^10\./.test(h) || /^192\.168\./.test(h) || /^169\.254\./.test(h)
+    || /^172\.(1[6-9]|2\d|3[01])\./.test(h);
+  if (blocked) throw new Error('不允许指向本机或内网地址');
+  u.hash = '';
+  return u.toString();  // 保留 origin + 路径（如 /compatible-mode/v1），只去掉锚点
+}
+function resolveAIConfigInput(body) {
+  const out = {};
+  const provider = String(body.provider || 'auto').toLowerCase();
+  if (!AI_PROVIDERS.has(provider)) throw new Error('不支持的提供商');
+  out.provider = provider;
+  if (body.model !== undefined) {
+    const m = String(body.model).trim();
+    if (!m || m.length > 120) throw new Error('模型名无效');
+    out.model = m;
+  }
+  if (body.baseUrl !== undefined && String(body.baseUrl).trim()) {
+    out.baseUrl = assertPublicHttpUrl(body.baseUrl);
+  }
+  if (body.apiKey !== undefined && String(body.apiKey).trim()) {
+    const k = String(body.apiKey).trim();
+    if (k.length < 8 || k.length > 256) throw new Error('API Key 长度无效');
+    out.apiKey = k;
+  }
+  return out;
+}
+app.get('/api/admin/ai-config', requireAdmin, (req, res) => {
+  res.json({ ok: true, config: aiConfigSummary() });
+});
+app.post('/api/admin/ai-config', requireAdmin, (req, res) => {
+  try {
+    const cfg = resolveAIConfigInput(req.body || {});
+    applyAIRuntime(cfg);
+    writeJSON(AI_CONFIG_FILE, {
+      provider: cfg.provider,
+      model: runtimeAI.model,
+      baseUrl: runtimeAI.baseRoot,
+      apiKey: runtimeAI.apiKey,
+      updatedAt: Date.now()
+    });
+    console.log('[ai-config] 已更新: provider=' + runtimeAI.provider + ' model=' + runtimeAI.model);
+    res.json({ ok: true, config: aiConfigSummary() });
+  } catch (e) {
+    res.status(400).json({ error: e.message || '配置无效' });
+  }
+});
+app.delete('/api/admin/ai-config', requireAdmin, (req, res) => {
+  try { fs.rmSync(AI_CONFIG_FILE, { force: true }); } catch (_) {}
+  runtimeAI.apiKey = API_KEY;
+  runtimeAI.baseUrl = API_CHAT_URL;
+  runtimeAI.baseRoot = API_BASE_URL;
+  runtimeAI.model = MODEL_NAME;
+  runtimeAI.provider = API_PROVIDER;
+  runtimeAI.source = API_KEY_SOURCE || 'env-default';
+  console.log('[ai-config] 已恢复环境变量默认配置');
+  res.json({ ok: true, config: aiConfigSummary() });
+});
+// 连通性测试：不污染运行时配置，用临时快照发起一次微型补全
+app.post('/api/admin/ai-config/test', requireAdmin, async (req, res) => {
+  let cfg;
+  try { cfg = resolveAIConfigInput(req.body || {}); } catch (e) { return res.status(400).json({ error: e.message }); }
+  const testAI = { ...runtimeAI };
+  try {
+    if (cfg.baseUrl) { const n = normalizeApiUrl(cfg.baseUrl); testAI.baseUrl = n.chatUrl; testAI.baseRoot = n.baseUrl; }
+    if (cfg.model) testAI.model = cfg.model;
+    if (cfg.apiKey) testAI.apiKey = cfg.apiKey;
+    testAI.provider = (cfg.provider && cfg.provider !== 'auto')
+      ? cfg.provider
+      : detectProvider('test', testAI.baseRoot, testAI.model, testAI.apiKey);
+    const t0 = Date.now();
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
+    const body = buildChatRequestBody('你是连通性测试程序。', 'ping', { temperature: 0, maxTokens: 8, stream: false, ai: testAI });
+    const r = await fetch(testAI.baseUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + testAI.apiKey },
+      body: JSON.stringify(body),
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+    const latencyMs = Date.now() - t0;
+    if (!r.ok) {
+      const txt = await r.text().catch(() => '');
+      return res.json({ ok: false, status: r.status, latencyMs, error: formatApiError(r.status, r.statusText, testAI.provider) + (txt ? ' | ' + txt.slice(0, 160) : '') });
+    }
+    res.json({ ok: true, latencyMs, model: testAI.model });
+  } catch (e) {
+    res.json({ ok: false, error: e.name === 'AbortError' ? '测试超时（15 秒）' : (e.message || '连接失败') });
+  }
 });
 
 // 获取所有用户

@@ -1347,6 +1347,76 @@
             #page-home .hu-index-grid { column-gap: 28px; }
             #page-home .q-cap { letter-spacing: 0.3em; }
         }
+
+        /* —— 小屏适配（放在最后，确保覆盖同名规则） —— */
+        @media (max-width: 719px) {
+            #page-home .hu-meta-tag { display: none; }
+            #page-home .hu-meta .brand-title { font-size: 13px; }
+            #page-home .hu-en { display: none; }
+            #page-home .topics-grid { grid-template-columns: 1fr; }
+            #page-home .hu-index-grid { column-gap: 28px; }
+            #page-home .q-cap { letter-spacing: 0.3em; }
+        }
+
+        /* ============================================================
+           AI 接入配置面板（编辑风：细线、等宽、无渐变）
+           ============================================================ */
+        .hu-overlay {
+            position: fixed; inset: 0; z-index: 10020;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(3, 0, 20, 0.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+            padding: 20px;
+        }
+        .hu-modal {
+            width: 100%; max-width: 460px; max-height: 86vh; overflow-y: auto;
+            background: #0a0620; border: 1px solid rgba(255,255,255,0.14); border-radius: 10px;
+            box-shadow: 0 30px 90px rgba(0,0,0,0.6);
+        }
+        .hu-modal-head {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-family: "Cascadia Mono", ui-monospace, Consolas, monospace;
+            font-size: 11px; letter-spacing: 0.3em; color: var(--text-primary);
+        }
+        .hu-modal-x { background: none; border: none; color: var(--text-muted); font-size: 1.3rem; cursor: pointer; line-height: 1; padding: 2px 6px; }
+        .hu-modal-x:hover { color: var(--text-primary); }
+        .hu-modal-body { padding: 18px 20px 22px; }
+        .hu-cfg-note { font-size: 0.78rem; color: var(--text-muted); line-height: 1.8; margin-bottom: 14px; }
+        .hu-cfg-live {
+            font-family: "Cascadia Mono", ui-monospace, Consolas, monospace;
+            font-size: 0.68rem; letter-spacing: 0.06em; color: var(--text-secondary); line-height: 1.9;
+            border: 1px solid rgba(255,255,255,0.1); border-left: 2px solid #8b7cff;
+            padding: 10px 12px; margin-bottom: 16px; word-break: break-all;
+        }
+        .hu-cfg-label {
+            display: block; font-family: "Cascadia Mono", ui-monospace, Consolas, monospace;
+            font-size: 0.62rem; letter-spacing: 0.26em; color: var(--hu-dim, rgba(255,255,255,0.4));
+            margin: 14px 0 6px;
+        }
+        .hu-cfg-input {
+            width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.14); border-radius: 6px;
+            color: var(--text-primary); font-size: 0.85rem; font-family: inherit;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+        .hu-cfg-input:focus { outline: none; border-color: #8b7cff; box-shadow: 0 0 0 1px rgba(139,124,255,0.35); }
+        select.hu-cfg-input { cursor: pointer; }
+        select.hu-cfg-input option { background: #0a0620; }
+        .hu-cfg-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        .hu-cfg-btn {
+            padding: 9px 16px; background: transparent; border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 4px; color: var(--text-primary); font-size: 0.8rem; letter-spacing: 0.1em;
+            cursor: pointer; transition: all 0.25s ease; flex: 1; white-space: nowrap;
+        }
+        .hu-cfg-btn:hover { border-color: var(--text-primary); background: rgba(255,255,255,0.06); }
+        .hu-cfg-btn.primary { border-color: rgba(139,124,255,0.6); color: #cfc6ff; }
+        .hu-cfg-btn.primary:hover { background: #8b7cff; color: #06060f; border-color: #8b7cff; }
+        .hu-cfg-btn.danger { color: rgba(248,113,113,0.8); border-color: rgba(248,113,113,0.3); }
+        .hu-cfg-btn.danger:hover { border-color: rgba(248,113,113,0.7); background: rgba(248,113,113,0.06); }
+        .hu-cfg-btn:disabled { opacity: 0.45; cursor: wait; }
+        .hu-cfg-msg { margin-top: 14px; font-size: 0.78rem; line-height: 1.7; min-height: 1.2em; word-break: break-all; }
+        .hu-cfg-msg.ok { color: #6ee7b7; }
+        .hu-cfg-msg.err { color: #fca5a5; }
     </style>
 </head>
 <body>
@@ -1369,6 +1439,43 @@
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
+<!-- AI 接入配置（管理员） -->
+<div class="hu-overlay" id="aiCfgOverlay" style="display:none;" onclick="if(event.target===this)closeAIConfig()">
+    <div class="hu-modal" role="dialog" aria-modal="true" aria-label="AI 接入配置">
+        <div class="hu-modal-head"><span>AI 接入配置</span><button class="hu-modal-x" onclick="closeAIConfig()" aria-label="关闭">×</button></div>
+        <div class="hu-modal-body">
+            <div id="aiCfgUnlock">
+                <p class="hu-cfg-note">此面板修改服务器的 AI 接入（Key / 接口地址 / 模型），保存后即时生效。请先以管理员身份解锁。</p>
+                <input id="aiCfgAdminUser" class="hu-cfg-input" placeholder="管理员账号" value="admin" autocomplete="off" spellcheck="false">
+                <input id="aiCfgAdminPass" class="hu-cfg-input" type="password" placeholder="管理员密码" autocomplete="off">
+                <button class="hu-cfg-btn primary" onclick="aiCfgUnlock()">解锁</button>
+            </div>
+            <div id="aiCfgBody" style="display:none;">
+                <div class="hu-cfg-live" id="aiCfgLive">加载中…</div>
+                <label class="hu-cfg-label" for="aiCfgProvider">提供商</label>
+                <select id="aiCfgProvider" class="hu-cfg-input">
+                    <option value="auto">自动检测（推荐）</option>
+                    <option value="aliyun">阿里云百炼 DashScope</option>
+                    <option value="volcengine">火山引擎 ARK</option>
+                    <option value="custom">自定义 OpenAI 兼容</option>
+                </select>
+                <label class="hu-cfg-label" for="aiCfgKey">API Key（留空 = 保持当前）</label>
+                <input id="aiCfgKey" type="password" class="hu-cfg-input" placeholder="sk-…" autocomplete="new-password" spellcheck="false">
+                <label class="hu-cfg-label" for="aiCfgUrl">Base URL（OpenAI 兼容地址，含 /v1）</label>
+                <input id="aiCfgUrl" class="hu-cfg-input" placeholder="https://dashscope.aliyuncs.com/compatible-mode/v1" spellcheck="false">
+                <label class="hu-cfg-label" for="aiCfgModel">模型</label>
+                <input id="aiCfgModel" class="hu-cfg-input" placeholder="deepseek-v4.1-flash" spellcheck="false">
+                <div class="hu-cfg-actions">
+                    <button class="hu-cfg-btn" id="aiCfgTestBtn" onclick="aiCfgTest()">测试连接</button>
+                    <button class="hu-cfg-btn primary" id="aiCfgSaveBtn" onclick="aiCfgSave()">保存并生效</button>
+                    <button class="hu-cfg-btn danger" onclick="aiCfgReset()">恢复 .env 默认</button>
+                </div>
+                <div class="hu-cfg-msg" id="aiCfgMsg"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- User Auth -->
 <div class="user-menu" id="userMenu">
     <button class="user-btn" id="userBtn" onclick="toggleUserMenu()" title="用户菜单">&#128100; <span id="userLabel">登录</span> <span class="user-arrow" id="userArrow">&#9662;</span></button>
@@ -1379,6 +1486,9 @@
         </div>
         <button class="user-dropdown-item" id="menuAdminBtn" onclick="openAdminFromMenu()" style="display:none;">
             <span class="udi-icon">&#128737;</span> 管理后台
+        </button>
+        <button class="user-dropdown-item" id="menuAISetBtn" onclick="openAIConfig()" style="display:none;">
+            <span class="udi-icon">&#9881;</span> AI 接入设置
         </button>
         <button class="user-dropdown-item" id="menuProfileBtn" onclick="openProfileFromMenu()" style="display:none;">
             <span class="udi-icon">&#128100;</span> 个人中心
@@ -2087,7 +2197,7 @@
 </div>
 
 <!-- Footer -->
-<div class="app-footer">如果宇宙 &#183; 探索你的平行人生 &#183; Made with TRAE</div>
+<div class="app-footer">如果宇宙 &#183; 探索你的平行人生 &#183; Made with TRAE &#183; <a onclick="openAIConfig()" style="cursor:pointer;">AI 接入</a></div>
 
 <script>
 // ===== DATA =====
@@ -7708,6 +7818,8 @@ function updateDropdown() {
             avatarEl.style.background = `linear-gradient(135deg, ${c1}, ${c2})`;
         }
         if (adminItem) adminItem.style.display = isAdminUser ? 'flex' : 'none';
+        const aiSetItem = document.getElementById('menuAISetBtn');
+        if (aiSetItem) aiSetItem.style.display = isAdminUser ? 'flex' : 'none';
         if (profileItem) profileItem.style.display = 'flex';
         if (loginItem) loginItem.style.display = 'none';
         if (divider) divider.style.display = 'block';
@@ -7717,6 +7829,8 @@ function updateDropdown() {
         // 未登录状态
         if (header) header.style.display = 'none';
         if (adminItem) adminItem.style.display = 'none';
+        const aiSetItemHide = document.getElementById('menuAISetBtn');
+        if (aiSetItemHide) aiSetItemHide.style.display = 'none';
         if (profileItem) profileItem.style.display = 'none';
         if (loginItem) loginItem.style.display = 'flex';
         if (divider) divider.style.display = 'none';
@@ -8785,6 +8899,143 @@ if ('serviceWorker' in navigator) {
         <div class="ach-desc" id="achPopupDesc">—</div>
     </div>
 </div>
+
+<script>
+// ===== AI 接入配置面板 =====
+function aiCfgToken() { return localStorage.getItem('yuzhou_admin_token') || ''; }
+function aiCfgHeaders() { return { 'Content-Type': 'application/json', 'x-admin-token': aiCfgToken() }; }
+function aiCfgMsg(text, cls) {
+    const el = document.getElementById('aiCfgMsg');
+    if (!el) return;
+    el.textContent = text;
+    el.className = 'hu-cfg-msg' + (cls ? ' ' + cls : '');
+}
+function openAIConfig() {
+    document.getElementById('aiCfgOverlay').style.display = 'flex';
+    aiCfgMsg('');
+    if (aiCfgToken()) { aiCfgLoad(); } else { aiCfgShowUnlock(); }
+}
+function closeAIConfig() { document.getElementById('aiCfgOverlay').style.display = 'none'; }
+function aiCfgShowUnlock() {
+    document.getElementById('aiCfgUnlock').style.display = 'block';
+    document.getElementById('aiCfgBody').style.display = 'none';
+    setTimeout(() => { const p = document.getElementById('aiCfgAdminPass'); if (p) p.focus(); }, 60);
+}
+async function aiCfgUnlock() {
+    const username = document.getElementById('aiCfgAdminUser').value.trim();
+    const password = document.getElementById('aiCfgAdminPass').value;
+    if (!username || !password) { aiCfgMsg('请输入管理员账号和密码', 'err'); return; }
+    try {
+        const res = await fetch(API_HOST + '/api/admin/login', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (data.ok) {
+            adminToken = data.token;
+            isAdminUser = true;
+            localStorage.setItem('yuzhou_admin_token', adminToken);
+            aiCfgLoad();
+        } else {
+            aiCfgMsg(data.error || '解锁失败', 'err');
+        }
+    } catch (e) {
+        aiCfgMsg('网络错误，请确认服务已启动', 'err');
+    }
+}
+async function aiCfgLoad() {
+    try {
+        const res = await fetch(API_HOST + '/api/admin/ai-config', { headers: aiCfgHeaders() });
+        if (res.status === 401) { aiCfgShowUnlock(); aiCfgMsg('管理员登录已过期，请重新解锁', 'err'); return; }
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || '加载失败');
+        const c = data.config;
+        document.getElementById('aiCfgUnlock').style.display = 'none';
+        document.getElementById('aiCfgBody').style.display = 'block';
+        document.getElementById('aiCfgLive').innerHTML =
+            'provider <b>' + escapeHtml(c.provider) + '</b> · model <b>' + escapeHtml(c.model) + '</b><br>' +
+            'baseUrl ' + escapeHtml(c.baseUrl || '(默认)') + '<br>' +
+            'key ' + (c.keyPreview ? escapeHtml(c.keyPreview) + ' (' + c.keyLength + '位)' : '未配置') +
+            ' · 来源 ' + escapeHtml(c.source);
+        const sel = document.getElementById('aiCfgProvider');
+        sel.value = ['aliyun', 'volcengine', 'custom'].includes(c.provider) ? c.provider : 'auto';
+        document.getElementById('aiCfgUrl').value = c.baseUrl || '';
+        document.getElementById('aiCfgModel').value = c.model || '';
+        document.getElementById('aiCfgKey').value = '';
+        document.getElementById('aiCfgKey').placeholder = '留空 = 保持当前（' + (c.keyPreview || '未配置') + '）';
+        aiCfgMsg('');
+    } catch (e) {
+        aiCfgMsg('加载失败：' + e.message, 'err');
+    }
+}
+function aiCfgCollect() {
+    return {
+        provider: document.getElementById('aiCfgProvider').value,
+        apiKey: document.getElementById('aiCfgKey').value.trim(),
+        baseUrl: document.getElementById('aiCfgUrl').value.trim(),
+        model: document.getElementById('aiCfgModel').value.trim()
+    };
+}
+async function aiCfgSave() {
+    const btn = document.getElementById('aiCfgSaveBtn');
+    btn.disabled = true;
+    try {
+        const res = await fetch(API_HOST + '/api/admin/ai-config', {
+            method: 'POST', headers: aiCfgHeaders(), body: JSON.stringify(aiCfgCollect())
+        });
+        if (res.status === 401) { aiCfgShowUnlock(); aiCfgMsg('管理员登录已过期，请重新解锁', 'err'); return; }
+        const data = await res.json();
+        if (!data.ok) { aiCfgMsg(data.error || '保存失败', 'err'); return; }
+        aiCfgFillLive(data.config);
+        aiCfgMsg('✓ 已保存并即时生效（新探索请求即使用新配置）', 'ok');
+        showToast('AI 接入配置已更新');
+    } catch (e) {
+        aiCfgMsg('保存失败：' + e.message, 'err');
+    } finally { btn.disabled = false; }
+}
+async function aiCfgTest() {
+    const btn = document.getElementById('aiCfgTestBtn');
+    btn.disabled = true; btn.textContent = '测试中…';
+    aiCfgMsg('');
+    try {
+        const res = await fetch(API_HOST + '/api/admin/ai-config/test', {
+            method: 'POST', headers: aiCfgHeaders(), body: JSON.stringify(aiCfgCollect())
+        });
+        if (res.status === 401) { aiCfgShowUnlock(); aiCfgMsg('管理员登录已过期，请重新解锁', 'err'); return; }
+        const data = await res.json();
+        if (data.ok) aiCfgMsg('✓ 连通正常 · 延迟 ' + data.latencyMs + 'ms · 模型 ' + (data.model || ''), 'ok');
+        else aiCfgMsg('✗ ' + (data.error || '连接失败'), 'err');
+    } catch (e) {
+        aiCfgMsg('测试失败：' + e.message, 'err');
+    } finally { btn.disabled = false; btn.textContent = '测试连接'; }
+}
+async function aiCfgReset() {
+    try {
+        const res = await fetch(API_HOST + '/api/admin/ai-config', { method: 'DELETE', headers: aiCfgHeaders() });
+        if (res.status === 401) { aiCfgShowUnlock(); aiCfgMsg('管理员登录已过期，请重新解锁', 'err'); return; }
+        const data = await res.json();
+        if (data.ok) { aiCfgFillLive(data.config); aiCfgMsg('已恢复 .env 环境变量默认配置', 'ok'); showToast('已恢复默认 AI 接入'); }
+        else aiCfgMsg(data.error || '操作失败', 'err');
+    } catch (e) { aiCfgMsg('操作失败：' + e.message, 'err'); }
+}
+function aiCfgFillLive(c) {
+    document.getElementById('aiCfgLive').innerHTML =
+        'provider <b>' + escapeHtml(c.provider) + '</b> · model <b>' + escapeHtml(c.model) + '</b><br>' +
+        'baseUrl ' + escapeHtml(c.baseUrl || '(默认)') + '<br>' +
+        'key ' + (c.keyPreview ? escapeHtml(c.keyPreview) + ' (' + c.keyLength + '位)' : '未配置') +
+        ' · 来源 ' + escapeHtml(c.source);
+    const sel = document.getElementById('aiCfgProvider');
+    sel.value = ['aliyun', 'volcengine', 'custom'].includes(c.provider) ? c.provider : 'auto';
+    document.getElementById('aiCfgUrl').value = c.baseUrl || '';
+    document.getElementById('aiCfgModel').value = c.model || '';
+    document.getElementById('aiCfgKey').value = '';
+    document.getElementById('aiCfgKey').placeholder = '留空 = 保持当前（' + (c.keyPreview || '未配置') + '）';
+}
+// Esc 关闭配置面板
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('aiCfgOverlay') && document.getElementById('aiCfgOverlay').style.display === 'flex') closeAIConfig();
+});
+</script>
 
 </body>
 </html>
