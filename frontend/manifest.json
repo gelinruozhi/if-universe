@@ -1,0 +1,19 @@
+{
+  "name": "如果宇宙 - 平行人生探索",
+  "short_name": "如果宇宙",
+  "description": "探索你的平行宇宙，AI生成个性化人生故事",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#030014",
+  "theme_color": "#030014",
+  "orientation": "portrait-primary",
+  "icons": [{
+    "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='24' fill='%23030014'/><text x='96' y='124' text-anchor='middle' font-size='80'>&#127756;</text></svg>",
+    "sizes": "192x192",
+    "type": "image/svg+xml"
+  }, {
+    "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='48' fill='%23030014'/><text x='256' y='330' text-anchor='middle' font-size='200'>&#127756;</text></svg>",
+    "sizes": "512x512",
+    "type": "image/svg+xml"
+  }]
+}

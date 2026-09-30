@@ -1,0 +1,19 @@
+{
+  "name": "yuzhou-universe",
+  "version": "1.0.0",
+  "description": "如果宇宙 - 平行人生探索应用",
+  "main": "server.js",
+  "type": "module",
+  "engines": {
+    "node": ">=22.9.0"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.js",
+    "dev": "node --env-file-if-exists=.env server.js"
+  },
+  "dependencies": {
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  }
+}
