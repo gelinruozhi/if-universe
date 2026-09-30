@@ -1417,6 +1417,59 @@
         .hu-cfg-msg { margin-top: 14px; font-size: 0.78rem; line-height: 1.7; min-height: 1.2em; word-break: break-all; }
         .hu-cfg-msg.ok { color: #6ee7b7; }
         .hu-cfg-msg.err { color: #fca5a5; }
+
+        /* ============================================================
+           管理后台（编辑风覆盖层）
+           ============================================================ */
+        :root { --hu-mono: "Cascadia Mono", "SF Mono", ui-monospace, Consolas, "Courier New", monospace; --hu-dim: rgba(255,255,255,0.4); }
+        .admin-modal .modal-content {
+            background: #0a0620; border: 1px solid rgba(255,255,255,0.14); border-radius: 10px;
+            box-shadow: 0 30px 90px rgba(0,0,0,0.6); max-width: 780px; width: 100%;
+        }
+        .admin-login-icon { display: none; }
+        .admin-login h3 { font-family: var(--hu-mono); font-size: 13px; letter-spacing: 0.3em; color: var(--text-primary); }
+        .admin-login p { font-size: 0.75rem; }
+        .admin-header h2 { font-family: var(--hu-mono); font-size: 13px; letter-spacing: 0.3em; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px; }
+        .admin-header .hu-en { color: var(--hu-dim); font-size: 9px; letter-spacing: 0.32em; font-weight: 400; }
+        .admin-logout { background: none; border: 1px solid rgba(255,255,255,0.18); border-radius: 4px; color: var(--text-muted); padding: 6px 14px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s ease; }
+        .admin-logout:hover { color: var(--text-primary); border-color: rgba(255,255,255,0.4); }
+        .admin-stat-card {
+            background: none; border: 1px solid rgba(255,255,255,0.08); border-left: 2px solid #8b7cff;
+            border-radius: 6px; padding: 12px 10px; text-align: center;
+        }
+        .admin-stat-value { font-family: var(--hu-mono); font-size: 1.25rem; color: var(--text-primary); }
+        .admin-stat-label { font-size: 0.62rem; letter-spacing: 0.24em; color: var(--text-muted); margin-top: 2px; }
+        .admin-tabs { display: flex; gap: 6px; margin: 14px 0 10px; }
+        .admin-tab { background: none; border: 1px solid rgba(255,255,255,0.12); border-radius: 4px; color: var(--text-secondary); padding: 8px 16px; font-size: 0.8rem; cursor: pointer; letter-spacing: 0.08em; transition: all 0.2s ease; }
+        .admin-tab.active { border-color: #8b7cff; color: #cfc6ff; }
+        .admin-tab:hover { color: var(--text-primary); }
+        .admin-toolbar { display: flex; gap: 10px; margin-bottom: 12px; }
+        .admin-toolbar .admin-search { flex: 1; }
+        .admin-toolbar .admin-create { flex: none; display: inline-flex; align-items: center; }
+        .admin-content { max-height: 46vh; overflow-y: auto; padding-right: 4px; }
+        .admin-list { display: flex; flex-direction: column; }
+        .admin-list-item {
+            display: flex; align-items: center; gap: 12px; padding: 11px 2px;
+            border-bottom: 1px solid rgba(255,255,255,0.06); background: none; border-radius: 0;
+            transition: background 0.2s ease;
+        }
+        .admin-list-item:hover { background: rgba(255,255,255,0.025); }
+        .admin-item-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 600; color: #fff; flex-shrink: 0; }
+        .admin-item-info { flex: 1; min-width: 0; }
+        .admin-item-name { font-size: 0.88rem; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .admin-item-meta { display: flex; gap: 12px; font-family: var(--hu-mono); font-size: 0.64rem; color: var(--text-muted); margin-top: 3px; flex-wrap: wrap; }
+        .admin-item-text { font-size: 0.76rem; color: var(--text-muted); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .admin-item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .admin-btn-danger, .admin-btn-view, .admin-btn-edit {
+            background: none; border: 1px solid rgba(255,255,255,0.16); border-radius: 4px;
+            color: var(--text-secondary); font-size: 0.72rem; padding: 6px 10px; cursor: pointer;
+            transition: all 0.2s ease; white-space: nowrap;
+        }
+        .admin-btn-view:hover, .admin-btn-edit:hover { color: var(--text-primary); border-color: rgba(139,124,255,0.6); }
+        .admin-btn-danger:hover { color: #fca5a5; border-color: rgba(248,113,113,0.5); }
+        .admin-btn-danger.armed { color: #fff; background: rgba(248,113,113,0.85); border-color: rgba(248,113,113,0.85); }
+        .admin-empty { text-align: center; padding: 30px; color: var(--text-muted); font-size: 0.82rem; }
+        .hu-cfg-mono { font-family: var(--hu-mono); font-size: 0.75rem; }
     </style>
 </head>
 <body>
@@ -1942,7 +1995,7 @@
             <!-- Dashboard -->
             <div id="adminDashboard" style="display:none;">
                 <div class="admin-header">
-                    <h2>&#128737; 管理后台</h2>
+                    <h2>管理后台 <span class="hu-en">ADMIN CONSOLE</span></h2>
                     <button class="admin-logout" onclick="adminLogout()">退出登录</button>
                 </div>
                 <div class="admin-stats" id="adminStats">
@@ -1952,14 +2005,44 @@
                     <div class="admin-stat-card"><div class="admin-stat-value" id="statExplores">-</div><div class="admin-stat-label">总探索</div></div>
                 </div>
                 <div class="admin-tabs">
-                    <button class="admin-tab active" data-admintab="users" onclick="switchAdminTab('users')">&#128101; 用户管理</button>
-                    <button class="admin-tab" data-admintab="posts" onclick="switchAdminTab('posts')">&#128196; 帖子管理</button>
-                    <button class="admin-tab" data-admintab="comments" onclick="switchAdminTab('comments')">&#128172; 评论管理</button>
+                    <button class="admin-tab active" data-admintab="users" onclick="switchAdminTab('users')">用户管理</button>
+                    <button class="admin-tab" data-admintab="posts" onclick="switchAdminTab('posts')">帖子管理</button>
+                    <button class="admin-tab" data-admintab="comments" onclick="switchAdminTab('comments')">评论管理</button>
+                </div>
+                <div class="admin-toolbar" id="adminToolbar">
+                    <input class="hu-cfg-input admin-search" id="adminSearch" placeholder="搜索用户 / 帖子 / 评论…" oninput="adminSearchInput()" spellcheck="false">
+                    <button class="hu-cfg-btn primary admin-create" id="adminCreateBtn" onclick="adminOpenPostEditor()" style="display:none;">＋ 新增帖子</button>
                 </div>
                 <div class="admin-content" id="adminContent">
                     <div class="admin-loading"><div class="galaxy-spinner"></div>加载中...</div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- 帖子编辑/新增（管理） -->
+<div class="hu-overlay" id="postEditOverlay" style="display:none;" onclick="if(event.target===this)closePostEditor()">
+    <div class="hu-modal" style="max-width:560px;" role="dialog" aria-modal="true" aria-label="编辑帖子">
+        <div class="hu-modal-head"><span id="peTitle">新增帖子</span><button class="hu-modal-x" onclick="closePostEditor()" aria-label="关闭">×</button></div>
+        <div class="hu-modal-body">
+            <label class="hu-cfg-label" for="peUsername">作者用户名（默认 admin）</label>
+            <input id="peUsername" class="hu-cfg-input" value="admin" maxlength="20" autocomplete="off" spellcheck="false">
+            <label class="hu-cfg-label" for="peQuery">人生假设 query（必填）</label>
+            <input id="peQuery" class="hu-cfg-input" maxlength="100" spellcheck="false">
+            <label class="hu-cfg-label" for="peUniverse">宇宙名 universe（必填）</label>
+            <input id="peUniverse" class="hu-cfg-input" maxlength="50" spellcheck="false">
+            <label class="hu-cfg-label" for="peExcerpt">摘要 excerpt（≤200字）</label>
+            <textarea id="peExcerpt" class="hu-cfg-input" rows="2" maxlength="200"></textarea>
+            <label class="hu-cfg-label" for="pePreview">故事预览 storyPreview（≤300字）</label>
+            <textarea id="pePreview" class="hu-cfg-input" rows="3" maxlength="300"></textarea>
+            <label class="hu-cfg-label" for="peContent">完整内容 content（JSON，可选；编辑时留空 = 保持不变）</label>
+            <textarea id="peContent" class="hu-cfg-input hu-cfg-mono" rows="5" placeholder='{"story":[…],"fragments":[…],"letter":{…}}' spellcheck="false"></textarea>
+            <div class="hu-cfg-actions">
+                <button class="hu-cfg-btn" onclick="closePostEditor()">取消</button>
+                <button class="hu-cfg-btn primary" id="peSaveBtn" onclick="adminSavePost()">保存</button>
+            </div>
+            <div class="hu-cfg-msg" id="peMsg"></div>
         </div>
     </div>
 </div>
@@ -8389,128 +8472,196 @@ function switchAdminTab(tab) {
     const activeBtn = document.querySelector(`.admin-tab[data-admintab="${tab}"]`);
     if (activeBtn) activeBtn.classList.add('active');
 
+    // 工具栏：搜索框占位 + 新增按钮仅帖子页显示
+    const search = document.getElementById('adminSearch');
+    if (search) {
+        search.value = '';
+        search.placeholder = tab === 'users' ? '搜索用户…' : tab === 'posts' ? '搜索帖子（假设 / 作者 / 宇宙名）…' : '搜索评论（内容 / 作者 / 帖子）…';
+    }
+    const createBtn = document.getElementById('adminCreateBtn');
+    if (createBtn) createBtn.style.display = tab === 'posts' ? 'inline-flex' : 'none';
+
     const content = document.getElementById('adminContent');
     content.innerHTML = '<div class="admin-loading"><div class="galaxy-spinner"></div>加载中...</div>';
+    loadAdminStats();
 
     if (tab === 'users') loadAdminUsers();
     else if (tab === 'posts') loadAdminPosts();
     else if (tab === 'comments') loadAdminComments();
 }
 
+// —— 管理后台：数据缓存 + 客户端搜索渲染 ——
+let adminCache = { users: [], posts: [], comments: [] };
+function adminSearchKeyword() {
+    const el = document.getElementById('adminSearch');
+    return el ? el.value.trim().toLowerCase() : '';
+}
+function adminSearchInput() {
+    if (currentAdminTab === 'users') renderAdminUsers();
+    else if (currentAdminTab === 'posts') renderAdminPosts();
+    else if (currentAdminTab === 'comments') renderAdminComments();
+}
+function adminRenderError(msg) {
+    const _ac = document.getElementById('adminContent');
+    _ac.innerHTML = '';
+    const _ad = document.createElement('div');
+    _ad.className = 'admin-empty'; _ad.style.color = '#f87171'; _ad.textContent = msg;
+    _ac.appendChild(_ad);
+}
+
 async function loadAdminUsers() {
     try {
         const res = await fetch(API_HOST + '/api/admin/users', { headers: adminHeaders() });
         const data = await res.json();
-        const content = document.getElementById('adminContent');
-        if (!data.users || data.users.length === 0) {
-            content.innerHTML = '<div class="admin-empty">暂无用户</div>';
-            return;
-        }
-        let html = '<div class="admin-list">';
-        data.users.forEach(u => {
-            const initial = (u.username || '?')[0].toUpperCase();
-            const avatarColor = u.avatar?.color1 || '#a855f7';
-            const avatarColor2 = u.avatar?.color2 || '#ec4899';
-            const joinDate = u.created ? new Date(u.created).toLocaleDateString('zh-CN') : '未知';
-            html += `<div class="admin-list-item">
-                <div class="admin-item-avatar" style="background:linear-gradient(135deg,${avatarColor},${avatarColor2});">${initial}</div>
-                <div class="admin-item-info">
-                    <div class="admin-item-name">${escapeHtml(u.username)}</div>
-                    <div class="admin-item-meta">
-                        <span>&#128197; ${joinDate}</span>
-                        <span>&#127756; ${u.totalExplores}次探索</span>
-                        <span>&#127942; ${u.achievements}成就</span>
-                        <span>&#11088; ${u.favorites}收藏</span>
-                        <span>&#9884; ${u.wheelSpins}转盘</span>
-                    </div>
-                </div>
-                <div class="admin-item-actions">
-                    <button class="admin-btn-danger" onclick="adminDeleteUser('${escapeHtml(u.username)}')">&#128465; 删除</button>
-                </div>
-            </div>`;
-        });
-        html += '</div>';
-        content.innerHTML = html;
-    } catch(e) {
-        {const _ac=document.getElementById('adminContent');_ac.innerHTML='';const _ad=document.createElement('div');_ad.className='admin-empty';_ad.style.color='#f87171';_ad.textContent='加载失败: '+e.message;_ac.appendChild(_ad);}
-    }
+        adminCache.users = data.users || [];
+        renderAdminUsers();
+    } catch (e) { adminRenderError('加载失败: ' + e.message); }
+}
+function renderAdminUsers() {
+    const content = document.getElementById('adminContent');
+    const kw = adminSearchKeyword();
+    const list = adminCache.users.filter(u => !kw || (u.username || '').toLowerCase().includes(kw));
+    if (list.length === 0) { content.innerHTML = '<div class="admin-empty">' + (kw ? '无匹配结果' : '暂无用户') + '</div>'; return; }
+    content.innerHTML = '<div class="admin-list">' + list.map(u => {
+        const initial = (u.username || '?')[0].toUpperCase();
+        const c1 = u.avatar?.color1 || '#a855f7', c2 = u.avatar?.color2 || '#ec4899';
+        const joinDate = u.created ? new Date(u.created).toLocaleDateString('zh-CN') : '未知';
+        return `<div class="admin-list-item">
+            <div class="admin-item-avatar" style="background:linear-gradient(135deg,${c1},${c2});">${initial}</div>
+            <div class="admin-item-info">
+                <div class="admin-item-name">${escapeHtml(u.username)}</div>
+                <div class="admin-item-meta"><span>加入 ${joinDate}</span><span>探索 ${u.totalExplores}</span><span>成就 ${u.achievements}</span><span>收藏 ${u.favorites}</span><span>转盘 ${u.wheelSpins}</span></div>
+            </div>
+            <div class="admin-item-actions">
+                <button class="admin-btn-danger" onclick="adminDeleteUser('${escapeHtml(u.username)}', this)">删除</button>
+            </div>
+        </div>`;
+    }).join('') + '</div>';
 }
 
 async function loadAdminPosts() {
     try {
         const res = await fetch(API_HOST + '/api/admin/posts', { headers: adminHeaders() });
         const data = await res.json();
-        const content = document.getElementById('adminContent');
-        if (!data.posts || data.posts.length === 0) {
-            content.innerHTML = '<div class="admin-empty">暂无广场帖子</div>';
-            return;
-        }
-        let html = '<div class="admin-list">';
-        data.posts.forEach(p => {
-            const initial = (p.username || '?')[0].toUpperCase();
-            const avatarColor = p.avatar?.color1 || '#a855f7';
-            const avatarColor2 = p.avatar?.color2 || '#ec4899';
-            const time = relativeTime(p.timestamp);
-            const excerpt = p.excerpt || p.storyPreview || '';
-            html += `<div class="admin-list-item">
-                <div class="admin-item-avatar" style="background:linear-gradient(135deg,${avatarColor},${avatarColor2});">${initial}</div>
-                <div class="admin-item-info">
-                    <div class="admin-item-name">${escapeHtml(p.query)}</div>
-                    <div class="admin-item-meta">
-                        <span>&#128100; ${escapeHtml(p.username)}</span>
-                        <span>&#128337; ${time}</span>
-                        <span>&#10084; ${p.likes || 0}</span>
-                        <span>&#128172; ${p.commentCount || 0}</span>
-                    </div>
-                    <div class="admin-item-text">${escapeHtml(excerpt)}</div>
-                </div>
-                <div class="admin-item-actions">
-                    <button class="admin-btn-view" onclick="adminViewPost('${p.id}')">&#128065; 查看</button>
-                    <button class="admin-btn-danger" onclick="adminDeletePost('${p.id}')">&#128465; 删除</button>
-                </div>
-            </div>`;
-        });
-        html += '</div>';
-        content.innerHTML = html;
-    } catch(e) {
-        {const _ac=document.getElementById('adminContent');_ac.innerHTML='';const _ad=document.createElement('div');_ad.className='admin-empty';_ad.style.color='#f87171';_ad.textContent='加载失败: '+e.message;_ac.appendChild(_ad);}
-    }
+        adminCache.posts = data.posts || [];
+        renderAdminPosts();
+    } catch (e) { adminRenderError('加载失败: ' + e.message); }
+}
+function renderAdminPosts() {
+    const content = document.getElementById('adminContent');
+    const kw = adminSearchKeyword();
+    const list = adminCache.posts.filter(p => !kw
+        || (p.query || '').toLowerCase().includes(kw)
+        || (p.username || '').toLowerCase().includes(kw)
+        || (p.universe || '').toLowerCase().includes(kw));
+    if (list.length === 0) { content.innerHTML = '<div class="admin-empty">' + (kw ? '无匹配结果' : '暂无广场帖子') + '</div>'; return; }
+    content.innerHTML = '<div class="admin-list">' + list.map(p => {
+        const initial = (p.username || '?')[0].toUpperCase();
+        const c1 = p.avatar?.color1 || '#a855f7', c2 = p.avatar?.color2 || '#ec4899';
+        const time = relativeTime(p.timestamp);
+        const excerpt = p.excerpt || p.storyPreview || '';
+        return `<div class="admin-list-item">
+            <div class="admin-item-avatar" style="background:linear-gradient(135deg,${c1},${c2});">${initial}</div>
+            <div class="admin-item-info">
+                <div class="admin-item-name">${escapeHtml(p.query)}</div>
+                <div class="admin-item-meta"><span>${escapeHtml(p.username)}</span><span>${time}</span><span>赞 ${p.likes || 0}</span><span>评 ${p.commentCount || 0}</span><span>#${p.id}</span></div>
+                <div class="admin-item-text">${escapeHtml(excerpt)}</div>
+            </div>
+            <div class="admin-item-actions">
+                <button class="admin-btn-edit" onclick="adminOpenPostEditor('${p.id}')">编辑</button>
+                <button class="admin-btn-view" onclick="adminViewPost('${p.id}')">查看</button>
+                <button class="admin-btn-danger" onclick="adminDeletePost('${p.id}', this)">删除</button>
+            </div>
+        </div>`;
+    }).join('') + '</div>';
 }
 
 async function loadAdminComments() {
     try {
         const res = await fetch(API_HOST + '/api/admin/comments', { headers: adminHeaders() });
         const data = await res.json();
-        const content = document.getElementById('adminContent');
-        if (!data.comments || data.comments.length === 0) {
-            content.innerHTML = '<div class="admin-empty">暂无评论</div>';
-            return;
-        }
-        let html = '<div class="admin-list">';
-        data.comments.forEach(c => {
-            const initial = (c.username || '?')[0].toUpperCase();
-            const avatarColor = c.avatar?.color1 || '#a855f7';
-            const avatarColor2 = c.avatar?.color2 || '#ec4899';
-            const time = relativeTime(c.timestamp);
-            html += `<div class="admin-list-item">
-                <div class="admin-item-avatar" style="background:linear-gradient(135deg,${avatarColor},${avatarColor2});">${initial}</div>
-                <div class="admin-item-info">
-                    <div class="admin-item-name">${escapeHtml(c.username)} <span style="font-weight:400;color:var(--text-muted);font-size:0.75rem;">评论了「${escapeHtml(c.postQuery)}」</span></div>
-                    <div class="admin-item-meta">
-                        <span>&#128337; ${time}</span>
-                    </div>
-                    <div class="admin-item-text">${escapeHtml(c.text)}</div>
-                </div>
-                <div class="admin-item-actions">
-                    <button class="admin-btn-danger" onclick="adminDeleteComment('${c.postId}','${c.id}')">&#128465; 删除</button>
-                </div>
-            </div>`;
-        });
-        html += '</div>';
-        content.innerHTML = html;
-    } catch(e) {
-        {const _ac=document.getElementById('adminContent');_ac.innerHTML='';const _ad=document.createElement('div');_ad.className='admin-empty';_ad.style.color='#f87171';_ad.textContent='加载失败: '+e.message;_ac.appendChild(_ad);}
+        adminCache.comments = data.comments || [];
+        renderAdminComments();
+    } catch (e) { adminRenderError('加载失败: ' + e.message); }
+}
+function renderAdminComments() {
+    const content = document.getElementById('adminContent');
+    const kw = adminSearchKeyword();
+    const list = adminCache.comments.filter(c => !kw
+        || (c.text || '').toLowerCase().includes(kw)
+        || (c.username || '').toLowerCase().includes(kw)
+        || (c.postQuery || '').toLowerCase().includes(kw));
+    if (list.length === 0) { content.innerHTML = '<div class="admin-empty">' + (kw ? '无匹配结果' : '暂无评论') + '</div>'; return; }
+    content.innerHTML = '<div class="admin-list">' + list.map(c => {
+        const initial = (c.username || '?')[0].toUpperCase();
+        const c1 = c.avatar?.color1 || '#a855f7', c2 = c.avatar?.color2 || '#ec4899';
+        const time = relativeTime(c.timestamp);
+        return `<div class="admin-list-item">
+            <div class="admin-item-avatar" style="background:linear-gradient(135deg,${c1},${c2});">${initial}</div>
+            <div class="admin-item-info">
+                <div class="admin-item-name">${escapeHtml(c.username)} <span style="font-weight:400;color:var(--text-muted);font-size:0.75rem;">评论了「${escapeHtml(c.postQuery)}」</span></div>
+                <div class="admin-item-meta"><span>${time}</span></div>
+                <div class="admin-item-text">${escapeHtml(c.text)}</div>
+            </div>
+            <div class="admin-item-actions">
+                <button class="admin-btn-danger" onclick="adminDeleteComment('${c.postId}','${c.id}', this)">删除</button>
+            </div>
+        </div>`;
+    }).join('') + '</div>';
+}
+
+// 帖子编辑/新增
+let postEditorId = null;
+function adminOpenPostEditor(postId) {
+    postEditorId = postId || null;
+    const p = postId ? adminCache.posts.find(x => x.id === postId) : null;
+    document.getElementById('peTitle').textContent = p ? '编辑帖子 · ' + p.id : '新增帖子';
+    document.getElementById('peUsername').value = p ? (p.username || 'admin') : 'admin';
+    document.getElementById('peUsername').disabled = !!p;
+    document.getElementById('peQuery').value = p ? (p.query || '') : '';
+    document.getElementById('peUniverse').value = p ? (p.universe || '') : '';
+    document.getElementById('peExcerpt').value = p ? (p.excerpt || '') : '';
+    document.getElementById('pePreview').value = p ? (p.storyPreview || '') : '';
+    const cEl = document.getElementById('peContent');
+    cEl.value = '';
+    cEl.placeholder = p ? '留空 = 保持现有完整内容不变' : '{"story":[…],"fragments":[…],"letter":{…}}';
+    const msg = document.getElementById('peMsg');
+    msg.textContent = ''; msg.className = 'hu-cfg-msg';
+    document.getElementById('postEditOverlay').style.display = 'flex';
+}
+function closePostEditor() { document.getElementById('postEditOverlay').style.display = 'none'; }
+function peMsg(t, cls) { const el = document.getElementById('peMsg'); el.textContent = t; el.className = 'hu-cfg-msg' + (cls ? ' ' + cls : ''); }
+async function adminSavePost() {
+    const query = document.getElementById('peQuery').value.trim();
+    const universe = document.getElementById('peUniverse').value.trim();
+    if (!query) { peMsg('query 不能为空', 'err'); return; }
+    if (!universe) { peMsg('universe 不能为空', 'err'); return; }
+    const contentRaw = document.getElementById('peContent').value.trim();
+    let content;
+    if (contentRaw) {
+        try { content = JSON.parse(contentRaw); } catch (e) { peMsg('content 不是合法 JSON：' + e.message, 'err'); return; }
     }
+    const payload = {
+        query, universe,
+        excerpt: document.getElementById('peExcerpt').value,
+        storyPreview: document.getElementById('pePreview').value
+    };
+    if (content !== undefined) payload.content = content;
+    const btn = document.getElementById('peSaveBtn');
+    btn.disabled = true;
+    try {
+        const res = await fetch(API_HOST + (postEditorId ? '/api/admin/posts/' + postEditorId : '/api/admin/posts'), {
+            method: postEditorId ? 'PUT' : 'POST', headers: adminHeaders(), body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.ok) {
+            showToast(postEditorId ? '帖子已更新' : '帖子已创建');
+            closePostEditor();
+            loadAdminPosts();
+            loadAdminStats();
+        } else peMsg(data.error || '保存失败', 'err');
+    } catch (e) { peMsg('保存失败：' + e.message, 'err'); }
+    finally { btn.disabled = false; }
 }
 
 function adminViewPost(postId) {
@@ -8518,8 +8669,29 @@ function adminViewPost(postId) {
     openSquareDetail(postId);
 }
 
-async function adminDeleteUser(username) {
-    if (!confirm(`确定要删除用户「${username}」吗？这将同时删除该用户的所有数据（历史、收藏、分享、评论），此操作不可恢复！`)) return;
+// 两步确认删除：第一次点击按钮进入"确认删除？"状态（3 秒后自动复位），再次点击才执行
+function adminArmDelete(btn, label) {
+    if (!btn.dataset.armed) {
+        btn.dataset.armed = '1';
+        btn.dataset.label = label;
+        btn.textContent = '确认删除？';
+        btn.classList.add('armed');
+        setTimeout(() => {
+            if (btn.isConnected) { delete btn.dataset.armed; btn.textContent = label; btn.classList.remove('armed'); }
+        }, 3000);
+        return false;
+    }
+    return true;
+}
+function adminDisarm(btn, label) {
+    delete btn.dataset.armed;
+    btn.textContent = label;
+    btn.classList.remove('armed');
+}
+
+async function adminDeleteUser(username, btn) {
+    const label = '删除';
+    if (!adminArmDelete(btn, label)) return;
     try {
         const res = await fetch(API_HOST + '/api/admin/users/' + encodeURIComponent(username), {
             method: 'DELETE',
@@ -8531,15 +8703,17 @@ async function adminDeleteUser(username) {
             loadAdminUsers();
             loadAdminStats();
         } else {
+            adminDisarm(btn, label);
             showToast(data.error || '删除失败');
         }
-    } catch(e) {
+    } catch (e) {
+        adminDisarm(btn, label);
         showToast('删除失败: ' + e.message);
     }
 }
 
-async function adminDeletePost(postId) {
-    if (!confirm('确定要删除这条广场帖子吗？该帖子的所有评论也会被删除，此操作不可恢复！')) return;
+async function adminDeletePost(postId, btn) {
+    if (!adminArmDelete(btn, '删除')) return;
     try {
         const res = await fetch(API_HOST + '/api/admin/posts/' + postId, {
             method: 'DELETE',
@@ -8551,15 +8725,17 @@ async function adminDeletePost(postId) {
             loadAdminPosts();
             loadAdminStats();
         } else {
+            adminDisarm(btn, '删除');
             showToast(data.error || '删除失败');
         }
-    } catch(e) {
+    } catch (e) {
+        adminDisarm(btn, '删除');
         showToast('删除失败: ' + e.message);
     }
 }
 
-async function adminDeleteComment(postId, commentId) {
-    if (!confirm('确定要删除这条评论吗？此操作不可恢复！')) return;
+async function adminDeleteComment(postId, commentId, btn) {
+    if (!adminArmDelete(btn, '删除')) return;
     try {
         const res = await fetch(API_HOST + `/api/admin/comments/${postId}/${commentId}`, {
             method: 'DELETE',
@@ -8571,9 +8747,11 @@ async function adminDeleteComment(postId, commentId) {
             loadAdminComments();
             loadAdminStats();
         } else {
+            adminDisarm(btn, '删除');
             showToast(data.error || '删除失败');
         }
-    } catch(e) {
+    } catch (e) {
+        adminDisarm(btn, '删除');
         showToast('删除失败: ' + e.message);
     }
 }

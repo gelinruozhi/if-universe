@@ -1945,6 +1945,80 @@ app.get('/api/admin/posts', requireAdmin, (req, res) => {
   res.json({ posts, total: posts.length });
 });
 
+// 管理员新增帖子（编辑面板"增帖"）
+app.post('/api/admin/posts', requireAdmin, (req, res) => {
+  const { username, query, universe, excerpt, storyPreview, content } = req.body || {};
+  if (!query || typeof query !== 'string' || !query.trim()) return res.status(400).json({ error: 'query 不能为空' });
+  if (!universe || typeof universe !== 'string' || !universe.trim()) return res.status(400).json({ error: 'universe 不能为空' });
+  const author = sanitizeUsername(username) || req.admin.username || 'admin';
+  let safeContent = null;
+  if (content !== undefined && content !== null) {
+    if (typeof content !== 'object') return res.status(400).json({ error: 'content 必须为 JSON 对象' });
+    if (JSON.stringify(content).length > 10000) return res.status(400).json({ error: 'content 过大（>10KB）' });
+    safeContent = content;
+  }
+  const sharedFp = path.join(SHARED_DIR, 'shared.json');
+  updateJSON(sharedFp, (shared) => {
+    const list = Array.isArray(shared) ? shared : [];
+    list.unshift({
+      id: crypto.randomBytes(6).toString('hex'),
+      username: author,
+      query: sanitizeText(query.trim(), 100),
+      universe: sanitizeText(universe.trim(), 50),
+      excerpt: sanitizeText(excerpt || '', 200),
+      storyPreview: sanitizeText(storyPreview || '', 300),
+      content: safeContent,
+      timestamp: Date.now(),
+      likes: 0,
+      commentCount: 0
+    });
+    if (list.length > 200) list.length = 200;
+    return list;
+  }, []).then((list) => {
+    invalidateCache('square-list');
+    console.log('[Admin] Created post by', req.admin.username);
+    res.json({ ok: true, id: list[0].id, total: list.length });
+  }).catch(err => {
+    console.error('[Admin] Create post error:', err);
+    if (!res.headersSent) res.status(500).json({ error: '创建失败' });
+  });
+});
+
+// 管理员编辑帖子（编辑面板"编辑"）
+app.put('/api/admin/posts/:id', requireAdmin, (req, res) => {
+  const postId = req.params.id;
+  const { query, universe, excerpt, storyPreview, content } = req.body || {};
+  if (query !== undefined && (!String(query).trim())) return res.status(400).json({ error: 'query 不能为空' });
+  let found = false;
+  const sharedFp = path.join(SHARED_DIR, 'shared.json');
+  updateJSON(sharedFp, (shared) => {
+    const list = Array.isArray(shared) ? shared : [];
+    const item = list.find(s => s.id === postId);
+    if (!item) return list;
+    found = true;
+    if (query !== undefined) item.query = sanitizeText(String(query).trim(), 100);
+    if (universe !== undefined) item.universe = sanitizeText(String(universe), 50);
+    if (excerpt !== undefined) item.excerpt = sanitizeText(String(excerpt), 200);
+    if (storyPreview !== undefined) item.storyPreview = sanitizeText(String(storyPreview), 300);
+    if (content !== undefined) {
+      if (content === null || content === '') item.content = null;
+      else if (typeof content === 'object') {
+        if (JSON.stringify(content).length > 10000) throw new Error('content 过大（>10KB）');
+        item.content = content;
+      } else throw new Error('content 必须为 JSON 对象');
+    }
+    return list;
+  }, []).then((list) => {
+    if (!found) return res.status(404).json({ error: '帖子不存在' });
+    invalidateCache('square-list');
+    console.log('[Admin] Edited post:', postId, 'by', req.admin.username);
+    res.json({ ok: true });
+  }).catch(err => {
+    console.error('[Admin] Edit post error:', err.message);
+    if (!res.headersSent) res.status(400).json({ error: err.message || '更新失败' });
+  });
+});
+
 // 删除广场帖子
 app.delete('/api/admin/posts/:id', requireAdmin, (req, res) => {
   const postId = req.params.id;
