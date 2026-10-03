@@ -106,13 +106,17 @@
         @keyframes pageIn { from { opacity: 0; transform: translateY(16px) scale(0.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
         /* Entry Animations */
-        .entry-animate { opacity: 0; transform: translateY(20px); animation: entryFadeIn 0.8s ease forwards; }
-        .entry-delay-1 { animation-delay: 0.2s; }
-        .entry-delay-2 { animation-delay: 0.4s; }
-        .entry-delay-3 { animation-delay: 0.6s; }
-        .entry-delay-4 { animation-delay: 0.8s; }
-        .entry-delay-5 { animation-delay: 1.0s; }
-        @keyframes entryFadeIn { to { opacity: 1; transform: translateY(0); } }
+        /* 入场动画：内容默认可见；关键帧从 0.3 透明度起步——即使浏览器在后台标签页
+           冻结动画（空屏问题的根因），内容也不会完全隐形 */
+        @media (prefers-reduced-motion: no-preference) {
+            .entry-animate { animation: entryFadeIn 0.55s ease backwards; }
+            .entry-delay-1 { animation-delay: 0.05s; }
+            .entry-delay-2 { animation-delay: 0.1s; }
+            .entry-delay-3 { animation-delay: 0.15s; }
+            .entry-delay-4 { animation-delay: 0.2s; }
+            .entry-delay-5 { animation-delay: 0.25s; }
+            @keyframes entryFadeIn { from { opacity: 0.3; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        }
 
         /* Brand */
         .brand-header { text-align: center; margin-bottom: 20px; position: relative; }
@@ -1562,8 +1566,8 @@
 <!-- ===== HOME PAGE ===== -->
 <main id="main-content">
 <div class="page active" id="page-home" role="main" aria-label="首页">
-    <!-- 顶部元信息行 -->
-    <header class="hu-meta entry-animate">
+    <!-- 顶部元信息行（首屏主角，无入场动画，零延迟可见） -->
+    <header class="hu-meta">
         <h1 class="brand-title">如果宇宙<span class="hu-en">IF·UNIVERSE</span></h1>
         <span class="hu-meta-tag">平行人生观测站 · PARALLEL-LIFE OBSERVATORY</span>
     </header>
@@ -1572,7 +1576,7 @@
     <div class="hu-vertical" aria-hidden="true">每一个如果，都是一个宇宙</div>
 
     <!-- 主舞台：提问 -->
-    <section class="hu-ask entry-animate">
+    <section class="hu-ask">
         <div class="q-cap">WRITE YOUR IF · 写下那个如果</div>
         <div class="q-composition">
             <div class="q-box">
