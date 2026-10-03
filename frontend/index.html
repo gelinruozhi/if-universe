@@ -1314,8 +1314,10 @@
         #page-home .emotion-radar-container { border-top: 1px solid var(--hu-line); margin-top: 26px; padding-top: 18px; }
 
         /* —— 桌面双栏（≥1080px） —— */
+        /* 注意必须限定 .active：否则 ID 选择器优先级压过 .page/.page.active 的显隐规则，
+           导致首页永远占据第一屏，其他页面被顶到一屏之下（空屏 bug 根源） */
         @media (min-width: 1080px) {
-            #page-home {
+            #page-home.active {
                 display: grid;
                 grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
                 grid-template-areas:
