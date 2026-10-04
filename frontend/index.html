@@ -1476,6 +1476,49 @@
         .admin-btn-danger.armed { color: #fff; background: rgba(248,113,113,0.85); border-color: rgba(248,113,113,0.85); }
         .admin-empty { text-align: center; padding: 30px; color: var(--text-muted); font-size: 0.82rem; }
         .hu-cfg-mono { font-family: var(--hu-mono); font-size: 0.75rem; }
+
+        /* ============================================================
+           全局 UI/UX 深度优化：桌面版式纪律 + 统一页头 + 输入体验
+           ============================================================ */
+        /* —— 统一页头（编辑风：标题居中 + 等宽副题） —— */
+        .page-head { text-align: center; margin-bottom: 26px; width: 100%; }
+        .page-head h2 {
+            margin: 0 0 9px !important; font-size: 1.08rem !important; font-weight: 600;
+            letter-spacing: 0.32em; text-indent: 0.32em; color: var(--text-primary);
+            font-family: var(--hu-mono);
+        }
+        .page-head p {
+            margin: 0 !important; font-family: var(--hu-mono) !important;
+            font-size: 0.66rem !important; letter-spacing: 0.26em;
+            color: var(--hu-dim, rgba(255,255,255,0.4)) !important; text-align: center !important;
+        }
+
+        /* —— 桌面版式纪律（≥1080px） —— */
+        @media (min-width: 1080px) {
+            /* 内容页统一列宽，避免窄列挤在一边 */
+            .page.active:not(#page-home):not(#page-loading) {
+                width: 100%;
+                max-width: 820px;
+                margin: 0 auto;
+                padding-top: 96px;
+                padding-bottom: 110px;
+            }
+            #page-square.active, #page-gallery.active, #page-profile.active { max-width: 920px; }
+            /* 稀疏页面（碰撞/转盘/对比）垂直居中，首屏即完整可用 */
+            #page-collide.active, #page-wheel.active, #page-compare.active {
+                justify-content: center;
+                min-height: calc(100vh - 30px);
+                padding-top: 30px;
+                padding-bottom: 40px;
+            }
+        }
+
+        /* —— 移动端输入防 iOS 聚焦缩放（<16px 的输入框聚焦时系统会强制放大页面） —— */
+        @media (max-width: 719px) {
+            .hu-cfg-input, .compare-input-field, .auth-input, textarea:not(.input-field), select:not(.input-field), input:not(.input-field):not([type="checkbox"]):not([type="radio"]) {
+                font-size: 16px !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1760,8 +1803,7 @@
 
 <!-- ===== WHEEL PAGE ===== -->
 <div class="page wheel-page" id="page-wheel">
-    <h2 style="margin-bottom: 30px; font-size: 1.5rem;">&#9856; 命运转盘</h2>
-    <p style="color: var(--text-secondary); margin-bottom: 30px;">转动命运，看看宇宙为你准备了什么</p>
+    <header class="page-head"><h2>命运转盘</h2><p>转动命运，看看宇宙为你准备了什么</p></header>
     <div class="wheel-container">
         <div class="wheel-pointer"></div>
         <canvas id="wheelCanvas" width="300" height="300"></canvas>
@@ -1776,8 +1818,7 @@
 
 <!-- ===== GALLERY PAGE ===== -->
 <div class="page gallery-page" id="page-gallery">
-    <h2 style="margin-bottom: 20px; font-size: 1.5rem;">&#9733; 宇宙图鉴</h2>
-    <p style="color: var(--text-secondary); margin-bottom: 24px;">你探索过的所有平行宇宙</p>
+    <header class="page-head"><h2>宇宙图鉴</h2><p>你探索过的所有平行宇宙</p></header>
     <div class="gallery-grid" id="galleryGrid"></div>
     <div id="galleryEmpty" style="text-align: center; color: var(--text-muted); padding: 60px 20px; display: none;">
         <div style="font-size: 3rem; margin-bottom: 16px;">&#127756;</div>
@@ -1788,7 +1829,7 @@
 
 <!-- ===== PROFILE PAGE ===== -->
 <div class="page profile-page" id="page-profile">
-    <h2 style="margin-bottom: 20px; font-size: 1.5rem;">&#9733; 探索者档案</h2>
+    <header class="page-head"><h2>探索者档案</h2></header>
     <div class="profile-stats">
         <div class="stat-card">
             <div class="stat-value" id="statTotal">0</div>
@@ -1817,8 +1858,7 @@
 
 <!-- ===== COMPARE PAGE ===== -->
 <div class="page compare-page" id="page-compare">
-    <h2 style="margin-bottom: 20px; font-size: 1.5rem;">&#128260; 平行宇宙对比</h2>
-    <p style="color: var(--text-secondary); margin-bottom: 24px;">输入或选择两个不同的选择，看看平行宇宙中的不同结果</p>
+    <header class="page-head"><h2>平行宇宙对比</h2><p>输入或选择两个不同的选择，看看平行宇宙中的不同结果</p></header>
     <div class="compare-container">
         <div class="compare-input">
             <div class="compare-select-wrapper">
@@ -1879,8 +1919,7 @@
 
 <!-- Square Page -->
 <div class="page" id="page-square">
-    <h2 style="margin-bottom: 8px; font-size: 1.4rem;">&#127760; 探索广场</h2>
-    <p style="color: var(--text-muted); margin-bottom: 24px; text-align: center; font-size: 0.9rem;">查看其他探索者分享的平行宇宙</p>
+    <header class="page-head"><h2>探索广场</h2><p>查看其他探索者分享的平行宇宙</p></header>
     
     <div style="width: 100%; max-width: 600px;">
         <div class="history-title"><span>&#127758; 广场分享</span></div>
@@ -1893,8 +1932,7 @@
 
 <!-- Collide Page -->
 <div class="page" id="page-collide">
-    <h2 style="margin-bottom: 8px; font-size: 1.4rem;">&#128168; 宇宙碰撞</h2>
-    <p style="color: var(--text-muted); margin-bottom: 24px; text-align: center; font-size: 0.9rem;">选择两个宇宙，让它们碰撞融合</p>
+    <header class="page-head"><h2>宇宙碰撞</h2><p>选择两个宇宙，让它们碰撞融合</p></header>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 600px; margin-bottom: 20px;">
         <div>
             <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">宇宙 A</label>
@@ -1915,8 +1953,7 @@
 
 <!-- Yearbook Page -->
 <div class="page" id="page-yearbook">
-    <h2 style="margin-bottom: 8px; font-size: 1.4rem;">&#128218; 宇宙年鉴</h2>
-    <p style="color: var(--text-muted); margin-bottom: 24px; text-align: center; font-size: 0.9rem;">你的年度探索报告</p>
+    <header class="page-head"><h2>宇宙年鉴</h2><p>你的年度探索报告</p></header>
     <div id="yearbookContent" style="width: 100%; max-width: 600px;">
         <div style="text-align:center;padding:40px;color:var(--text-muted);"><div class="galaxy-spinner" style="margin:0 auto 16px;"></div>加载中...</div>
     </div>
@@ -3224,7 +3261,7 @@ function setupInputScroll() {
 }
 
 // ===== API CONFIG =====
-const APP_VERSION = 'v4.4.1-regexfix-20260703';
+const APP_VERSION = 'v4.6.0-ai-config-20261001';
 const API_HOST = window.location.origin;
 const API_STREAM_URL = API_HOST + '/api/generate-stream';
 console.log('%c[如果宇宙] ' + APP_VERSION + ' | API_HOST=' + API_HOST, 'color:#a855f7;font-weight:bold;font-size:12px;');
