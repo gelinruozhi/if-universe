@@ -1,11 +1,13 @@
 @echo off
-rem ===== 如果宇宙 Windows 一键启动 =====
-rem 双击运行或在 cmd 中执行；关闭窗口即停止服务
 chcp 65001 >nul
+title Yuzhou - If Universe
 cd /d "%~dp0"
 echo ========================================
-echo   如果宇宙 Yuzhou - 启动中...
-echo   启动后访问 http://localhost:3001
+echo   Yuzhou (If Universe) - starting...
+echo   Open: http://localhost:3001
+echo   Close this window to stop the server.
 echo ========================================
 node --env-file-if-exists=.env server.js
-pause
+echo.
+echo Server stopped. Press any key to close...
+pause >nul
