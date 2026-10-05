@@ -387,6 +387,8 @@ function requireAdmin(req, res, next) {
         return res.status(401).json({ error: '管理员登录已过期，请重新登录' });
     }
     req.admin = session;
+    // 管理端响应含敏感数据，禁止任何缓存
+    res.set('Cache-Control', 'no-store');
     next();
 }
 
@@ -409,6 +411,14 @@ function checkRateLimit(ip, bucket = 'default') {
     }
     entry.count++;
     return entry.count <= max;
+}
+// 限流响应：带 Retry-After 头和剩余秒数提示，用户知道还要等多久
+function rateLimitExceeded(res, ip, bucket) {
+    const key = (bucket || 'default') + ':' + ip;
+    const entry = rateLimit.get(key);
+    const retryAfter = entry ? Math.max(1, Math.ceil((entry.start + RATE_LIMIT_WINDOW - Date.now()) / 1000)) : Math.ceil(RATE_LIMIT_WINDOW / 1000);
+    res.set('Retry-After', String(retryAfter));
+    return res.status(429).json({ error: `请求过于频繁，请 ${retryAfter} 秒后再试`, retryAfter });
 }
 
 // ===== 工具函数 =====
@@ -919,7 +929,7 @@ const SYSTEM_PROMPT = `你是"平行宇宙叙事生成器"：用户给出一个�
 // ===== 用户系统 =====
 app.post('/api/auth/register', (req, res) => {
   const ip = req.ip || req.socket.remoteAddress || 'unknown';
-  if (!checkRateLimit(ip, 'auth')) return res.status(429).json({ error: '请求过于频繁，请稍后再试' });
+  if (!checkRateLimit(ip, 'auth')) return rateLimitExceeded(res, ip, 'auth');
   const { username, password } = req.body || {};
   if (!username || !password || username.length < 2 || username.length > 20 || password.length < 4)
     return res.status(400).json({ error: '用户名2-20字，密码至少4位' });
@@ -953,7 +963,7 @@ app.post('/api/auth/register', (req, res) => {
 
 app.post('/api/auth/login', (req, res) => {
   const ip = req.ip || req.socket.remoteAddress || 'unknown';
-  if (!checkRateLimit(ip, 'auth')) return res.status(429).json({ error: '请求过于频繁，请稍后再试' });
+  if (!checkRateLimit(ip, 'auth')) return rateLimitExceeded(res, ip, 'auth');
   const { username, password } = req.body || {};
   if (!username || !password) return res.status(400).json({ error: 'Missing credentials' });
   
@@ -1057,7 +1067,7 @@ app.post('/api/generate-stream', async (req, res) => {
   if (!query || typeof query !== 'string' || query.trim().length === 0 || query.length > 100)
     return res.status(400).json({ error: '请输入有效的人生假设（1-100字）' });
   const ip = req.ip || req.socket.remoteAddress || 'unknown';
-  if (!checkRateLimit(ip, 'ai')) return res.status(429).json({ error: '请求过于频繁，请稍后再试' });
+  if (!checkRateLimit(ip, 'ai')) return rateLimitExceeded(res, ip, 'ai');
 
   await createSSEStream(req, res, {
     systemPrompt: SYSTEM_PROMPT,
@@ -1553,7 +1563,7 @@ app.post('/api/collide', async (req, res) => {
   if (queryA.length > 100 || queryB.length > 100)
     return res.status(400).json({ error: '查询内容过长' });
   const ip = req.ip || req.socket.remoteAddress || 'unknown';
-  if (!checkRateLimit(ip, 'ai')) return res.status(429).json({ error: '请求过于频繁，请稍后再试' });
+  if (!checkRateLimit(ip, 'ai')) return rateLimitExceeded(res, ip, 'ai');
 
   const userMsg = `第一个宇宙：${queryA}\n第二个宇宙：${queryB}\n请生成这两个宇宙碰撞融合后的故事。`;
   await createSSEStream(req, res, {
@@ -1586,7 +1596,7 @@ app.post('/api/continue-stream', async (req, res) => {
   if (storyText.length > 3000)
     return res.status(400).json({ error: '故事内容过长' });
   const ip = req.ip || req.socket.remoteAddress || 'unknown';
-  if (!checkRateLimit(ip, 'ai')) return res.status(429).json({ error: '请求过于频繁，请稍后再试' });
+  if (!checkRateLimit(ip, 'ai')) return rateLimitExceeded(res, ip, 'ai');
 
   const context = `原故事假设：${query}\n已有故事：\n${storyText}\n\n请续写接下来发生的事情。`;
   await createSSEStream(req, res, {
@@ -1747,7 +1757,7 @@ app.get('/api/yearbook', (req, res) => {
 // 管理员登录
 app.post('/api/admin/login', (req, res) => {
   const ip = req.ip || req.socket.remoteAddress || 'unknown';
-  if (!checkRateLimit(ip, 'auth')) return res.status(429).json({ error: '请求过于频繁，请稍后再试' });
+  if (!checkRateLimit(ip, 'auth')) return rateLimitExceeded(res, ip, 'auth');
   const { username, password } = req.body || {};
   if (!safeCompare(username, ADMIN_USERNAME) || !safeCompare(password, ADMIN_PASSWORD)) {
     return res.status(401).json({ error: '用户名或密码错误' });
